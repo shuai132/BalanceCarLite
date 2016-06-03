@@ -4,7 +4,8 @@
 
 /*
  * PID Ëã·¨
- *
+ * ×÷Õß:ÁõË§
+ * 2016-06-03
  */
 
 float pid(float input, float setpoint, float kp, float ki, float kd, float dead_line)

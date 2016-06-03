@@ -11,6 +11,8 @@
 
 /*
  * 平衡小车控制
+ * 作者:刘帅
+ * 2016-06-03
  */
 
 #if defined(CANNON_V2)
@@ -31,6 +33,7 @@ static float dead_line = 0.5f;    //PID死区
 
 //static float dt        = 0.004f;  //微分时间
 //static float acc_coeff = 0.0037f; //加速度转换角度系数
+static float atan_coeff  = 57.3f;   //arctan转换角度系数
 static float gro_coeff = -0.0645f;  //角速度对应角度变化系数
 static float gro_zero  = 24.05f;    //角速度为0时的校准值
 extern float Angle, Gyro_y;         //kalman融合后得出的最优角度和角速度
@@ -72,7 +75,7 @@ void car_task(void* arg)
     //angle_a = (float)ax*acc_coeff;
     //printf("C1:%f\r\n", angle_a);
     //方法二：
-    angle_a = (float)atan((float)ax/az)*57.3f;
+    angle_a = (float)atan((float)ax/az)*atan_coeff;
     printf("C1:%f\r\n", angle_a);
     
     /*
