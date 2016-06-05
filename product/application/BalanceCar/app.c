@@ -25,7 +25,10 @@ const char* board_name = "CANNON V1";
 uint16_t TIMER_CCR_MAX = 700;     //小车转速的最大值 0-999
 static float pwm_f_coeff = 1.1f;  //前进时候的pwm系数修正
 static float pwm_b_coeff = 1.2f;  //后退时候的pwm系数修正
-static float set_point   = -1.5f; //平衡时的角度
+static float balance_point= -1.5f;//平衡时的角度
+static float set_speed   = 0.f;   //设置速度(实际上是角度)
+//static float right_speed = 0.f;   //设置左轮速度
+//static float left_speed  = 0.f;   //设置右轮速度
 static float kp = 3.2f;           //比例项
 static float ki = 0.05f;          //积分项
 static float kd = 50.0f;          //微分项
@@ -99,7 +102,7 @@ void car_task(void* arg)
 
 #if 1
     pwm = Angle;
-    pwm = pid(pwm, set_point, kp, ki, kd, dead_line);
+    pwm = pid(pwm, balance_point+set_speed, kp, ki, kd, dead_line);
     
     if(pwm<0)
     {
@@ -289,65 +292,32 @@ static void read_gyro(void* arg)
 }
 
 /* Device On Message */
-volatile uint8_t pwm_is_on = 0;
-volatile float  step_set  = 1;
 void ble_device_on_message(uint8_t type, uint16_t length, uint8_t* value)
 {
     float tmp = 0;
     if(type == 9)
     {
-        /*LED Control*/
-        if(*value == 0) {
-            car_to_f();
-            BSP_LED_On(LED0);
-        }else if(*value == 1) {
-            car_to_b();
-            BSP_LED_Off(LED0);
-        }else if(*value == 2) {
-            //pwm off
-            pwm_is_on = 0;
-
-            if(++step_set == 4)
-            {
-                step_set = 1;
-            }
-        }else if(*value == 3) {
-            //pwm on
-            pwm_is_on = 1;
-        }
+        //按键
     }
     else if(type == 1)
     {
-        value[4] = '\0';
-        TIM1->CCR1 = atoi((const char *)value) * 10;  //value is 0 ~ 100
-        TIM2->CCR1 = TIM1->CCR1;
+        //预留
     }
     else if(type == 2)
     {
-        //reset set_point
-        value[4] = '\0';
-        tmp = atoi((const char *)value)/50;
-        tmp -= 500;
-        tmp = tmp/50;
-        set_point = tmp;
+        //reset balance_point
+        value[2] = '\0';                    //2位整数
+        tmp = atoi((const char *)value);    //max = 20
+        tmp -= 10;                          //-10  10
+        set_speed = tmp;
     }
     else if(type == 3)
     {
         //reset kp
-        value[4] = '\0';
-        tmp = atoi((const char *)value)/50;
-        tmp -= 500;
-        tmp = tmp/50;
-        kp = tmp;
     }
     else if(type == 4)
     {
         //reset kd
-        value[4] = '\0';
-        tmp = atoi((const char *)value)/50;
-        tmp -= 500;
-        tmp = tmp/50;
-        kd = tmp;
     }
 }
 
